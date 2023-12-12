@@ -29,6 +29,8 @@ from torch_ema import ExponentialMovingAverage
 from tqdm import tqdm
 from packaging import version as pver
 
+import traceback
+
 def reparameterize(mu: torch.Tensor, logvar: torch.Tensor) -> torch.Tensor:
     """
     Will a single z be enough ti compute the expectation
@@ -686,6 +688,7 @@ class Trainer(object):
         }
         
         self.model.eval()
+        traceback.print_stack()
 
         if self.ema is not None:
             self.ema.store()

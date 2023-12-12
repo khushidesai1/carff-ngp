@@ -8,6 +8,7 @@ import torch.nn.functional as F
 from nerf.utils import *
 import torchmetrics
 from matplotlib import pyplot as plt 
+import traceback
 
 hidden_dim = 512
 K = 2  # Number of mixtures
@@ -180,6 +181,7 @@ class NeRFGUI:
         poses = self.train_loader._data.poses[rand_index].cpu().numpy() # [B, 4, 4]
         intrinsics = self.train_loader._data.intrinsics
         outputs = self.trainer.test_gui(poses, intrinsics, W, H, latents, bg_color=None, spp=1, downscale=1)
+        traceback.print_stack();
         pred_img = torch.from_numpy(outputs['image']) #.reshape(-1, H, W, 3)
         save_image(pred_img.permute(2, 0, 1), 'rendered.png')
         plt.imshow(pred_img)

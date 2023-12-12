@@ -126,6 +126,8 @@ class NeRFNetwork(NeRFRenderer):
         
         # sigmoid activation for rgb
         color = torch.sigmoid(h)
+        print("color shape forward:", color.shape)
+        print("sigma shape forward:", sigma.shape)
 
         return sigma, color
 
@@ -178,6 +180,9 @@ class NeRFNetwork(NeRFRenderer):
             rgbs[mask] = h.to(rgbs.dtype) # fp16 --> fp32
         else:
             rgbs = h
+
+        print("color net input shape:", x.shape)
+        print("color net output shape:", rgbs.shape)
 
         return rgbs        
 
