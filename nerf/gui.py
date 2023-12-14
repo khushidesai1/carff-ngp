@@ -66,7 +66,7 @@ class OrbitCamera:
 
 
 class NeRFGUI:
-    def __init__(self, opt, trainer, train_loader=None, debug=True):
+    def __init__(self, opt, trainer, train_loader=None, input_path="train/cam-v0-t2", debug=True):
         self.opt = opt # shared with the trainer's opt to support in-place modification of rendering parameters.
         self.W = opt.W
         self.H = opt.H
@@ -82,7 +82,8 @@ class NeRFGUI:
         if train_loader is not None:
             self.trainer.error_map = train_loader._data.error_map
 
-        index = self.find_index("train/cam-v0-t0")
+        # index = self.find_index("train/cam-v0-t2")
+        index = self.find_index(input_path)
         mu = train_loader._data.mus[index]
         var = train_loader._data.vars[index]
         self.test_latent = reparameterize(mu, var)
@@ -162,7 +163,7 @@ class NeRFGUI:
                 self.render_buffer = (self.render_buffer * self.spp + outputs['image']) / (self.spp + 1)
                 self.spp += 1
 
-    def render_bev(self):
+    def render_bev(self, save_path):
         '''
         for terminal viz, renders the bev image
         '''
@@ -180,11 +181,12 @@ class NeRFGUI:
         latents = self.test_latent.cuda().float()
         poses = self.train_loader._data.poses[rand_index].cpu().numpy() # [B, 4, 4]
         intrinsics = self.train_loader._data.intrinsics
+        print(intrinsics)
         outputs = self.trainer.test_gui(poses, intrinsics, W, H, latents, bg_color=None, spp=1, downscale=1)
-        traceback.print_stack();
         pred_img = torch.from_numpy(outputs['image']) #.reshape(-1, H, W, 3)
-        save_image(pred_img.permute(2, 0, 1), 'rendered.png')
+        save_image(pred_img.permute(2, 0, 1), save_path)
         plt.imshow(pred_img)
+        return outputs['red_positions']
 
     def find_index(self, input):
         '''
@@ -193,7 +195,7 @@ class NeRFGUI:
         indices = [index for index, path in enumerate(self.train_loader._data.paths) if input in path]
         if len(indices) != 1:
             return -1
-        print("Input correspinds to:", self.train_loader._data.paths[indices[0]])
+        print("Input corresponds to:", self.train_loader._data.paths[indices[0]])
         return indices[0]
 
     def probe(self):

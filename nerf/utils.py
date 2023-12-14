@@ -29,8 +29,6 @@ from torch_ema import ExponentialMovingAverage
 from tqdm import tqdm
 from packaging import version as pver
 
-import traceback
-
 def reparameterize(mu: torch.Tensor, logvar: torch.Tensor) -> torch.Tensor:
     """
     Will a single z be enough ti compute the expectation
@@ -493,8 +491,9 @@ class Trainer(object):
 
         pred_rgb = outputs['image'].reshape(-1, H, W, 3)
         pred_depth = outputs['depth'].reshape(-1, H, W)
+        red_positions = outputs['red_positions']
 
-        return pred_rgb, pred_depth
+        return pred_rgb, pred_depth, red_positions
 
 
     def save_mesh(self, save_path=None, resolution=256, threshold=10):
@@ -688,7 +687,6 @@ class Trainer(object):
         }
         
         self.model.eval()
-        traceback.print_stack()
 
         if self.ema is not None:
             self.ema.store()
@@ -697,7 +695,7 @@ class Trainer(object):
         with torch.no_grad():
             with torch.cuda.amp.autocast(enabled=self.fp16):
                 # here spp is used as perturb random seed!
-                preds, preds_depth = self.test_step(data, bg_color=bg_color, perturb=spp)
+                preds, preds_depth, red_positions = self.test_step(data, bg_color=bg_color, perturb=spp)
 
         if self.ema is not None:
             self.ema.restore()
@@ -713,10 +711,12 @@ class Trainer(object):
 
         pred = preds[0].detach().cpu().numpy()
         pred_depth = preds_depth[0].detach().cpu().numpy()
+        # red_positions = red_positions
 
         outputs = {
             'image': pred,
             'depth': pred_depth,
+            'red_positions': red_positions
         }
 
         return outputs

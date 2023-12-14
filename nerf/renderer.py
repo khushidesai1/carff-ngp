@@ -253,6 +253,8 @@ class NeRFRenderer(nn.Module):
             raise
         '''
 
+        red_positions = []
+
         N = rays_o.shape[0] # N = B * N, in fact
         device = rays_o.device
 
@@ -299,7 +301,6 @@ class NeRFRenderer(nn.Module):
                 depth = torch.clamp(depth - nears, min=0) / (fars - nears)
                 image = image.view(*prefix, 3)
                 depth = depth.view(*prefix)
-
         else:
             dtype = torch.float32
             
@@ -341,7 +342,20 @@ class NeRFRenderer(nn.Module):
                 except:
                     raise
                 sigmas, rgbs = self(xyzs, dirs, unwrapped_latents)
-                sigmas = self.density_scale * sigmas
+
+                positions = self.find_red_positions(xyzs, rgbs).tolist()
+                if len(positions) > 0:
+                    red_positions.append(positions)
+                
+                target_location = torch.tensor([0.15, 0.06, -0.3]).to(xyzs.get_device())
+                tolerance = 0.05
+                distances = torch.norm(xyzs - target_location, dim=-1)
+                close_to_target = distances < tolerance
+                mask = torch.all(xyzs == torch.tensor([0.15, 0.06, -0.3]).to(xyzs.get_device()), dim=1).to(rgbs.get_device())
+                
+                rgbs[mask] = torch.tensor([0., 0., 1.], dtype=rgbs.dtype).to(rgbs.get_device())
+                rgbs[close_to_target] = torch.tensor([0., 0., 1.], dtype=rgbs.dtype).to(rgbs.get_device())
+
                 raymarching.composite_rays(n_alive, n_step, rays_alive[i % 2], rays_t[i % 2], sigmas.float(), rgbs.float(), deltas, weights_sum, depth, image)
 
                 step += n_step
@@ -352,11 +366,16 @@ class NeRFRenderer(nn.Module):
             image = image.view(*prefix, 3)
             depth = depth.view(*prefix)
         # print("not training branch")
-
         return {
             'depth': depth,
             'image': image,
+            'red_positions': red_positions
         }
+
+    def find_red_positions(self, xyzs, rgbs, red_threshold=0.7):
+        red_dominant = (rgbs[:, 0] > red_threshold) & (rgbs[:, 1] < rgbs[:, 0] * 0.5) & (rgbs[:, 2] < rgbs[:, 0] * 0.5)
+        red_positions = xyzs[red_dominant]
+        return red_positions
 
     @torch.no_grad()
     def mark_untrained_grid(self, poses, intrinsic, S=64):
@@ -540,6 +559,7 @@ class NeRFRenderer(nn.Module):
             assert False, "should be using cuda_ray"
             depth = torch.empty((B, N), device=device)
             image = torch.empty((B, N, 3), device=device)
+            red_positions = torch.empty((B, N, 3), device=device)
 
             for b in range(B):
                 head = 0
@@ -548,13 +568,16 @@ class NeRFRenderer(nn.Module):
                     results_ = _run(rays_o[b:b+1, head:tail], rays_d[b:b+1, head:tail], **kwargs)
                     depth[b:b+1, head:tail] = results_['depth']
                     image[b:b+1, head:tail] = results_['image']
+                    # red_positions[b:b+1, head:tail] = results_['red_positions']
                     head += max_ray_batch
             
             results = {}
             results['depth'] = depth
             results['image'] = image
+            # results['red_positions'] = red_positions
 
         else:
             results = _run(rays_o, rays_d, latents, **kwargs)
+            # print(results.keys())
 
         return results

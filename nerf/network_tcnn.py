@@ -94,6 +94,8 @@ class NeRFNetwork(NeRFRenderer):
         # x: [N, 3], in [-bound, bound]
         # d: [N, 3], nomalized in [-1, 1]
 
+        # print("input shape:", x.shape)
+        orig_x = x
 
         # sigma
         if self.hash_encoder_gets_latent:
@@ -125,10 +127,9 @@ class NeRFNetwork(NeRFRenderer):
         h = self.color_net(h)
         
         # sigmoid activation for rgb
+        
         color = torch.sigmoid(h)
-        print("color shape forward:", color.shape)
-        print("sigma shape forward:", sigma.shape)
-
+        
         return sigma, color
 
     def density(self, x, latent_inputs):
@@ -181,9 +182,8 @@ class NeRFNetwork(NeRFRenderer):
         else:
             rgbs = h
 
-        print("color net input shape:", x.shape)
-        print("color net output shape:", rgbs.shape)
-
+        mask = torch.all(x == torch.tensor([0.5, 0.5, 0.5]).to(x.get_device()), dim=1).to(rgbs.get_device())
+        rgbs[mask] = torch.tensor([0., 0., 1.], dtype=rgbs.dtype).to(rgbs.get_device())
         return rgbs        
 
     # optimizer utils
