@@ -259,26 +259,35 @@ optimizer = lambda model: torch.optim.Adam(model.get_params(opt.lr), betas=(0.9,
 train_loader = NeRFDataset(opt, device=device, type='train').dataloader()
 scheduler = lambda optimizer: optim.lr_scheduler.LambdaLR(optimizer, lambda iter: 0.1 ** min(iter / opt.iters, 1))
 trainer = Trainer('ngp', opt, model, device=device, workspace=opt.workspace, optimizer=optimizer, criterion=criterion, ema_decay=0.95, fp16=opt.fp16, lr_scheduler=scheduler, scheduler_update_every_step=True, metrics=[PSNRMeter()], use_checkpoint=opt.ckpt, eval_interval=50)
-gui = NeRFGUI(opt, trainer, train_loader, input_path="train/cam-v0-t0")
+gui = NeRFGUI(opt, trainer, train_loader, input_path="train/cam-v2-t0")
 
-gui.render(500) # 500 to reach 0.55 progress
+gui.render(700) # 500 to reach 0.55 progress
 
-red_positions = gui.render_bev("rendered1.png")
-
-red_positions = np.concatenate(red_positions)
+# Getting positions for each timestamp
 
 kmeans = KMeans(n_clusters=2)
-kmeans.fit(red_positions)
-labels = np.array(kmeans.labels_)
 
-cluster_0 = red_positions[labels == 0]
-cluster_1 = red_positions[labels == 1]
+car_positions = {}
 
-car_positions = cluster_0 if cluster_0[0][0] < cluster_1[0][0] else cluster_1
+for t in range(6):
+    outputs = gui.update_latent_from_image(f"train/cam-v2-t{t}", f"rendered_t{t}.png")
+    red_positions = np.concatenate(outputs['red_positions'])
 
-print("Number of car positions:", len(car_positions))
-print("First 10 positions")
-[print(f"position {i}:", car_positions[i]) for i in range(10)]
-[print(f"position {-i}:", car_positions[i]) for i in range(10)]
+    kmeans.fit(red_positions)
+    labels = np.array(kmeans.labels_)
+
+    cluster_0 = red_positions[labels == 0]
+    cluster_1 = red_positions[labels == 1]
+
+    car_positions[t] = cluster_0 if cluster_0[0][0] < cluster_1[0][0] else cluster_1
+
+    print(f"First 5 car positions for timestamp {t}:")
+    for i in range(5):
+        print(car_positions[t][i])
+    print()
+
+# Performing example density probing using range of car positions
+
+outputs = gui.update_latent_from_predicted(f"train/cam-v58-t4", f"rendered_t5_pred.png")
 
 

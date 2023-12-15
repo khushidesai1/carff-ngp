@@ -476,7 +476,7 @@ class Trainer(object):
         return pred_rgb, pred_depth, gt_rgb, loss
 
     # moved out bg_color and perturb for more flexible control...
-    def test_step(self, data, bg_color=None, perturb=False):  
+    def test_step(self, data, bg_color=None, perturb=False, target_positions=None):  
 
         rays_o = data['rays_o'] # [B, N, 3]
         rays_d = data['rays_d'] # [B, N, 3]
@@ -487,13 +487,14 @@ class Trainer(object):
             bg_color = bg_color.to(self.device)
 
         # NOTE: need to modify to pass latent info through
-        outputs = self.model.render(rays_o, rays_d, latents, staged=True, bg_color=bg_color, perturb=perturb, **vars(self.opt))
+        outputs = self.model.render(rays_o, rays_d, latents, staged=True, bg_color=bg_color, perturb=perturb, target_positions=target_positions, **vars(self.opt))
 
         pred_rgb = outputs['image'].reshape(-1, H, W, 3)
         pred_depth = outputs['depth'].reshape(-1, H, W)
         red_positions = outputs['red_positions']
+        mean_density = outputs['mean_density']
 
-        return pred_rgb, pred_depth, red_positions
+        return pred_rgb, pred_depth, red_positions, mean_density
 
 
     def save_mesh(self, save_path=None, resolution=256, threshold=10):
@@ -658,7 +659,7 @@ class Trainer(object):
 
     
     # [GUI] test on a single image
-    def test_gui(self, pose, intrinsics, W, H, latents, bg_color=None, spp=1, downscale=1):
+    def test_gui(self, pose, intrinsics, W, H, latents, bg_color=None, spp=1, downscale=1, target_positions=None):
         
         # render resolution (may need downscale to for better frame rate)
         rH = int(H * downscale)
@@ -695,7 +696,7 @@ class Trainer(object):
         with torch.no_grad():
             with torch.cuda.amp.autocast(enabled=self.fp16):
                 # here spp is used as perturb random seed!
-                preds, preds_depth, red_positions = self.test_step(data, bg_color=bg_color, perturb=spp)
+                preds, preds_depth, red_positions, mean_density = self.test_step(data, bg_color=bg_color, perturb=spp, target_positions=target_positions)
 
         if self.ema is not None:
             self.ema.restore()
@@ -716,7 +717,8 @@ class Trainer(object):
         outputs = {
             'image': pred,
             'depth': pred_depth,
-            'red_positions': red_positions
+            'red_positions': red_positions,
+            'mean_density': mean_density
         }
 
         return outputs

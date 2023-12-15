@@ -123,7 +123,7 @@ class NeRFRenderer(nn.Module):
         self.mean_count = 0
         self.local_step = 0
 
-    def run(self, rays_o, rays_d, num_steps=128, upsample_steps=128, bg_color=None, perturb=False, **kwargs):
+    def run(self, rays_o, rays_d, num_steps=128, upsample_steps=128, bg_color=None, perturb=False, target_positions=None, **kwargs):
 
         prefix = rays_o.shape[:-1]
         rays_o = rays_o.contiguous().view(-1, 3)
@@ -236,7 +236,7 @@ class NeRFRenderer(nn.Module):
         }
 
 
-    def run_cuda(self, rays_o, rays_d, latents, dt_gamma=0, bg_color=None, perturb=False, force_all_rays=False, max_steps=1024, **kwargs):
+    def run_cuda(self, rays_o, rays_d, latents, dt_gamma=0, bg_color=None, perturb=False, force_all_rays=False, max_steps=1024, target_positions=None, **kwargs):
         # rays_o, rays_d: [B, N, 3], assumes B == 1
         # return: image: [B, N, 3], depth: [B, N]
 
@@ -254,6 +254,7 @@ class NeRFRenderer(nn.Module):
         '''
 
         red_positions = []
+        mean_densities = []
 
         N = rays_o.shape[0] # N = B * N, in fact
         device = rays_o.device
@@ -346,15 +347,40 @@ class NeRFRenderer(nn.Module):
                 positions = self.find_red_positions(xyzs, rgbs).tolist()
                 if len(positions) > 0:
                     red_positions.append(positions)
+
+                if target_positions:
+                    threshold = 0.001
+                    expanded_xyzs = xyzs.unsqueeze(0)
+                    expanded_target_positions = target_positions.unsqueeze(1)
+                    distances = torch.cdist(expanded_xyzs, expanded_target_positions, p=2).squeeze()
+                    close_mask = distances < threshold
+                    selected_densities = torch.where(close_mask, sigmas, torch.tensor(0.0))
+                    if len(selected_densities) > 0:
+                        print("Found positions...")
+                        mean_densities.append(torch.mean(selected_densities).item())
+                        print("Recorded densities at positions!")
                 
-                target_location = torch.tensor([0.15, 0.06, -0.3]).to(xyzs.get_device())
-                tolerance = 0.05
-                distances = torch.norm(xyzs - target_location, dim=-1)
-                close_to_target = distances < tolerance
-                mask = torch.all(xyzs == torch.tensor([0.15, 0.06, -0.3]).to(xyzs.get_device()), dim=1).to(rgbs.get_device())
+                # Verify a target location on the rendered image.
+
+                # t0
+                # target_location = torch.tensor([0.15, 0.06, -0.3]).to(xyzs.get_device())
+
+                # t1 pos 1
+                # target_location = torch.tensor([0.14, -0.005, -0.3]).to(xyzs.get_device())
+
+                # t1 pos 2
+                # target_location = torch.tensor([0.12, 0.023, 0.15]).to(xyzs.get_device())
+
+                # target_location = torch.tensor([0., 0., 0.]).to(xyzs.get_device())
+                # tolerance = 0.08
+                # distances = torch.norm(xyzs - target_location, dim=-1)
+                # close_to_target = distances < tolerance
+
+                # mask = torch.all(xyzs == target_location, dim=1).to(rgbs.get_device())
                 
-                rgbs[mask] = torch.tensor([0., 0., 1.], dtype=rgbs.dtype).to(rgbs.get_device())
-                rgbs[close_to_target] = torch.tensor([0., 0., 1.], dtype=rgbs.dtype).to(rgbs.get_device())
+                # color_fill = torch.tensor([0., 0., 1.], dtype=rgbs.dtype).to(rgbs.get_device())
+                # rgbs[mask] = color_fill
+                # rgbs[close_to_target] = color_fill
 
                 raymarching.composite_rays(n_alive, n_step, rays_alive[i % 2], rays_t[i % 2], sigmas.float(), rgbs.float(), deltas, weights_sum, depth, image)
 
@@ -365,11 +391,14 @@ class NeRFRenderer(nn.Module):
             depth = torch.clamp(depth - nears, min=0) / (fars - nears)
             image = image.view(*prefix, 3)
             depth = depth.view(*prefix)
+        
+        mean_density = np.mean(mean_densities) if len(mean_densities) > 0 else 0.0
         # print("not training branch")
         return {
             'depth': depth,
             'image': image,
-            'red_positions': red_positions
+            'red_positions': red_positions,
+            'mean_density': mean_density
         }
 
     def find_red_positions(self, xyzs, rgbs, red_threshold=0.7):
@@ -544,7 +573,7 @@ class NeRFRenderer(nn.Module):
             self.mean_count = int(self.step_counter[:total_step, 0].sum().item() / total_step)
         self.local_step = 0
 
-    def render(self, rays_o, rays_d, latents, staged=False, max_ray_batch=4096, **kwargs):
+    def render(self, rays_o, rays_d, latents, staged=False, max_ray_batch=4096, target_positions=None, **kwargs):
 
         if self.cuda_ray:
             _run = self.run_cuda
@@ -565,7 +594,7 @@ class NeRFRenderer(nn.Module):
                 head = 0
                 while head < N:
                     tail = min(head + max_ray_batch, N)
-                    results_ = _run(rays_o[b:b+1, head:tail], rays_d[b:b+1, head:tail], **kwargs)
+                    results_ = _run(rays_o[b:b+1, head:tail], rays_d[b:b+1, head:tail], target_positions=target_positions, **kwargs)
                     depth[b:b+1, head:tail] = results_['depth']
                     image[b:b+1, head:tail] = results_['image']
                     # red_positions[b:b+1, head:tail] = results_['red_positions']
