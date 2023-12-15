@@ -356,9 +356,7 @@ class NeRFRenderer(nn.Module):
                         close_to_target = distances < threshold
                         selected_densities = sigmas[close_to_target]
                         if len(selected_densities) > 0:
-                            print("Found positions...")
                             mean_densities.append(torch.mean(selected_densities).item())
-                            print("Recorded densities at positions!")
                 
                 # Verify a target location on the rendered image.
 
