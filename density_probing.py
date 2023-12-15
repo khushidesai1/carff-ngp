@@ -287,7 +287,6 @@ for t in range(6):
     print()
 
 # Performing example density probing using range of car positions
-
-outputs = gui.update_latent_from_predicted(f"train/cam-v58-t4", f"rendered_t5_pred.png")
+outputs = gui.update_latent_from_predicted(f"train/cam-v68-t4", f"rendered_t5_pred.png")
 
 
