@@ -660,7 +660,6 @@ class Trainer(object):
     
     # [GUI] test on a single image
     def test_gui(self, pose, intrinsics, W, H, latents, bg_color=None, spp=1, downscale=1, target_positions=None):
-        
         # render resolution (may need downscale to for better frame rate)
         rH = int(H * downscale)
         rW = int(W * downscale)

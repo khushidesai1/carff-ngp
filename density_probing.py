@@ -261,7 +261,7 @@ scheduler = lambda optimizer: optim.lr_scheduler.LambdaLR(optimizer, lambda iter
 trainer = Trainer('ngp', opt, model, device=device, workspace=opt.workspace, optimizer=optimizer, criterion=criterion, ema_decay=0.95, fp16=opt.fp16, lr_scheduler=scheduler, scheduler_update_every_step=True, metrics=[PSNRMeter()], use_checkpoint=opt.ckpt, eval_interval=50)
 gui = NeRFGUI(opt, trainer, train_loader, input_path="train/cam-v2-t0")
 
-gui.render(700) # 500 to reach 0.55 progress
+gui.render(900) # 500 to reach 0.55 progress
 
 # Getting positions for each timestamp
 
@@ -287,6 +287,8 @@ for t in range(6):
     print()
 
 # Performing example density probing using range of car positions
-outputs = gui.update_latent_from_predicted(f"train/cam-v68-t4", f"rendered_t5_pred.png")
+avg_density1, avg_density4 = gui.update_and_compute_densities(f"train/cam-v68-t3", car_positions[1], car_positions[4], dest_path=f"rendered_t2_pred.png")
+print("Average density at car position 1:", avg_density1)
+print("Average density at car position 4:", avg_density4)
 
 

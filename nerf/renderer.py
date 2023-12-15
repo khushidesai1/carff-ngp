@@ -348,17 +348,17 @@ class NeRFRenderer(nn.Module):
                 if len(positions) > 0:
                     red_positions.append(positions)
 
-                if target_positions:
+                if target_positions is not None:
                     threshold = 0.001
-                    expanded_xyzs = xyzs.unsqueeze(0)
-                    expanded_target_positions = target_positions.unsqueeze(1)
-                    distances = torch.cdist(expanded_xyzs, expanded_target_positions, p=2).squeeze()
-                    close_mask = distances < threshold
-                    selected_densities = torch.where(close_mask, sigmas, torch.tensor(0.0))
-                    if len(selected_densities) > 0:
-                        print("Found positions...")
-                        mean_densities.append(torch.mean(selected_densities).item())
-                        print("Recorded densities at positions!")
+                    for target_pos in target_positions:
+                        target_pos = torch.tensor(target_pos).to(xyzs.get_device())
+                        distances = torch.norm(xyzs - target_pos, dim=-1)
+                        close_to_target = distances < threshold
+                        selected_densities = sigmas[close_to_target]
+                        if len(selected_densities) > 0:
+                            print("Found positions...")
+                            mean_densities.append(torch.mean(selected_densities).item())
+                            print("Recorded densities at positions!")
                 
                 # Verify a target location on the rendered image.
 
@@ -594,7 +594,7 @@ class NeRFRenderer(nn.Module):
                 head = 0
                 while head < N:
                     tail = min(head + max_ray_batch, N)
-                    results_ = _run(rays_o[b:b+1, head:tail], rays_d[b:b+1, head:tail], target_positions=target_positions, **kwargs)
+                    results_ = _run(rays_o[b:b+1, head:tail], rays_d[b:b+1, head:tail], **kwargs)
                     depth[b:b+1, head:tail] = results_['depth']
                     image[b:b+1, head:tail] = results_['image']
                     # red_positions[b:b+1, head:tail] = results_['red_positions']
@@ -606,7 +606,7 @@ class NeRFRenderer(nn.Module):
             # results['red_positions'] = red_positions
 
         else:
-            results = _run(rays_o, rays_d, latents, **kwargs)
+            results = _run(rays_o, rays_d, latents, target_positions=target_positions, **kwargs)
             # print(results.keys())
 
         return results
