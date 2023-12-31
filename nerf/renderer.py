@@ -337,7 +337,6 @@ class NeRFRenderer(nn.Module):
                 n_step = max(min(N // n_alive, 8), 1)
                 xyzs, dirs, deltas = raymarching.march_rays(n_alive, n_step, rays_alive[i % 2], rays_t[i % 2], rays_o, rays_d, self.bound, self.density_bitfield, self.cascade, self.grid_size, nears, fars, 128, perturb, dt_gamma, max_steps)
 
-
                 try:
                     unwrapped_latents = latents.expand(xyzs.shape[0],self.latent_dim).contiguous().view(-1, self.latent_dim)
                 except:
@@ -347,38 +346,31 @@ class NeRFRenderer(nn.Module):
                 positions = self.find_red_positions(xyzs, rgbs).tolist()
                 if len(positions) > 0:
                     red_positions.append(positions)
-
-                if target_positions is not None:
-                    threshold = 0.001
-                    for target_pos in target_positions:
-                        target_pos = torch.tensor(target_pos).to(xyzs.get_device())
-                        distances = torch.norm(xyzs - target_pos, dim=-1)
-                        close_to_target = distances < threshold
-                        selected_densities = sigmas[close_to_target]
-                        if len(selected_densities) > 0:
-                            mean_densities.append(torch.mean(selected_densities).item())
                 
                 # Verify a target location on the rendered image.
+                target_locations = {}
+                # T0 truck location
+                target_locations[0] = torch.tensor([0.14833795, 0.02983168, -0.33660668]).to(xyzs.get_device())
+                # T1 truck location
+                target_locations[1] = torch.tensor([0.14917257, 0.03152247, -0.05158296]).to(xyzs.get_device())
+                # T2 truck location
+                target_locations[2] = torch.tensor([0.14624707, 0.03038827, 0.17848531]).to(xyzs.get_device())
+                # T3 truck location
+                target_locations[3] = torch.tensor([0.14833795, 0.02983168, -0.33660668]).to(xyzs.get_device())
+                # T4 truck location
+                target_locations[4] = torch.tensor([0.14755751, 0.0269241, -0.27873851]).to(xyzs.get_device())
+                # T5 truck location
+                target_locations[5] = torch.tensor([0.14674433, 0.02607318, -0.21582227]).to(xyzs.get_device())
 
-                # t0
-                # target_location = torch.tensor([0.15, 0.06, -0.3]).to(xyzs.get_device())
+                if target_positions is not None:
+                    tolerance = 0.05
+                    target_location = target_locations[target_positions]
+                    distances = torch.norm(xyzs - target_location, dim=-1)
+                    close_to_target = distances < tolerance
 
-                # t1 pos 1
-                # target_location = torch.tensor([0.14, -0.005, -0.3]).to(xyzs.get_device())
-
-                # t1 pos 2
-                # target_location = torch.tensor([0.12, 0.023, 0.15]).to(xyzs.get_device())
-
-                # target_location = torch.tensor([0., 0., 0.]).to(xyzs.get_device())
-                # tolerance = 0.08
-                # distances = torch.norm(xyzs - target_location, dim=-1)
-                # close_to_target = distances < tolerance
-
-                # mask = torch.all(xyzs == target_location, dim=1).to(rgbs.get_device())
-                
-                # color_fill = torch.tensor([0., 0., 1.], dtype=rgbs.dtype).to(rgbs.get_device())
-                # rgbs[mask] = color_fill
-                # rgbs[close_to_target] = color_fill
+                    selected_densities = sigmas[close_to_target]
+                    if len(selected_densities) > 0:
+                        mean_densities.append(torch.mean(selected_densities).item())
 
                 raymarching.composite_rays(n_alive, n_step, rays_alive[i % 2], rays_t[i % 2], sigmas.float(), rgbs.float(), deltas, weights_sum, depth, image)
 
@@ -572,7 +564,6 @@ class NeRFRenderer(nn.Module):
         self.local_step = 0
 
     def render(self, rays_o, rays_d, latents, staged=False, max_ray_batch=4096, target_positions=None, **kwargs):
-
         if self.cuda_ray:
             _run = self.run_cuda
         else:
@@ -592,7 +583,7 @@ class NeRFRenderer(nn.Module):
                 head = 0
                 while head < N:
                     tail = min(head + max_ray_batch, N)
-                    results_ = _run(rays_o[b:b+1, head:tail], rays_d[b:b+1, head:tail], **kwargs)
+                    results_ = _run(rays_o[b:b+1, head:tail], rays_d[b:b+1, head:tail], target_positions=target_positions **kwargs)
                     depth[b:b+1, head:tail] = results_['depth']
                     image[b:b+1, head:tail] = results_['image']
                     # red_positions[b:b+1, head:tail] = results_['red_positions']

@@ -159,7 +159,7 @@ class NeRFNetwork(NeRFRenderer):
         x = (x + self.bound) / (2 * self.bound) # to [0, 1]
 
         if mask is not None:
-            rgbs = torch.zeros(mask.shape[0], 3, dtype=x.dtype, device=x.device) # [N, 3]
+            rgbs = torch.zeros(mask.shape[0 ], 3, dtype=x.dtype, device=x.device) # [N, 3]
             # in case of empty mask
             if not mask.any():
                 return rgbs

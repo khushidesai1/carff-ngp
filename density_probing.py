@@ -265,30 +265,53 @@ gui.render(900) # 500 to reach 0.55 progress
 
 # Getting positions for each timestamp
 
-kmeans = KMeans(n_clusters=2)
-
-car_positions = {}
+truck_positions = {}
 
 for t in range(6):
     outputs = gui.update_latent_from_image(f"train/cam-v2-t{t}", f"rendered_t{t}.png")
     red_positions = np.concatenate(outputs['red_positions'])
 
+    kmeans = KMeans(n_clusters=2)
     kmeans.fit(red_positions)
     labels = np.array(kmeans.labels_)
+    centroid_0, centroid_1 = kmeans.cluster_centers_[0], kmeans.cluster_centers_[1]
 
     cluster_0 = red_positions[labels == 0]
     cluster_1 = red_positions[labels == 1]
 
-    car_positions[t] = cluster_0 if cluster_0[0][0] < cluster_1[0][0] else cluster_1
+    # car_positions[t] = cluster_0 if cluster_0[0][0] < cluster_1[0][0] else cluster_1
+    two_car_positions = cluster_0 if centroid_0[0] < centroid_1[0] else cluster_1
+
+    kmeans = KMeans(n_clusters=2)
+    kmeans.fit(two_car_positions)
+    labels = np.array(kmeans.labels_)
+    centroid_0, centroid_1 = kmeans.cluster_centers_[0], kmeans.cluster_centers_[1]
+
+    cluster_0 = two_car_positions[labels == 0]
+    cluster_1 = two_car_positions[labels == 1]
+
+    exact_truck_positions = cluster_1 if centroid_0[0] < centroid_1[0] else cluster_1
+    truck_positions[t] = exact_truck_positions
+    print("Centroid 0:", centroid_0)
+    print("Centroid 1:", centroid_1)
 
     print(f"First 5 car positions for timestamp {t}:")
     for i in range(5):
-        print(car_positions[t][i])
+        print(truck_positions[t][i])
     print()
 
 # Performing example density probing using range of car positions
-avg_density1, avg_density4 = gui.update_and_compute_densities(f"train/cam-v68-t3", car_positions[1], car_positions[4], dest_path=f"rendered_t2_pred.png")
-print("Average density at car position 1:", avg_density1)
-print("Average density at car position 4:", avg_density4)
+print("Probing density for prediction of t1...")
+avg_densities = gui.update_and_compute_densities("train/cam-v68-t0", truck_positions[1], truck_positions[4], dest_path=f"rendered_t1_pred.png")
+for i in range(6):
+    print(f"Average density at car position {i}:", avg_densities[i])
+max_density = max(avg_densities, key=avg_densities.get)
+print(f"Maximum density is at car position {max_density}:", avg_densities[max_density])
 
+print("Probing density for prediction of t4...")
+avg_densities = gui.update_and_compute_densities("train/cam-v68-t3", truck_positions[1], truck_positions[4], dest_path=f"rendered_t4_pred.png")
+for i in range(6):
+    print(f"Average density at car position {i}:", avg_densities[i])
+max_density = max(avg_densities, key=avg_densities.get)
+print(f"Maximum density is at car position {max_density}:", avg_densities[max_density])
 
