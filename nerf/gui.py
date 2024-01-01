@@ -208,7 +208,7 @@ class NeRFGUI:
         outputs = self.trainer.test_gui(poses, intrinsics, W, H, latents, bg_color=None, spp=1, downscale=1, target_positions=target_positions)
         return outputs['mean_density']
 
-    def update_and_compute_densities(self, image_path, target_positions1, target_positions2, dest_path='rendered.png'):
+    def update_and_compute_densities(self, image_path, dest_path='rendered.png'):
         result_index = self.find_index(image_path)
         # update test_latent
         if result_index == -1:
@@ -314,3 +314,56 @@ class NeRFGUI:
             if self.training:
                 self.train_step()
             self.test_step()
+
+    def callback_toggle_probe_10(sender, image_path):
+        parts = image_path.split(',')
+        num_experiments = int(parts[0])
+        image_path = parts[1]
+        gt_index = self.find_index(image_path)
+        gt_scene = int(self.train_loader._data.scene_ids[gt_index])
+        
+        predicted_t = []
+        for _ in range(num_experiments):
+            update_latent_from_image(image_path)
+            result_index = self.probe()
+            mus = self.train_loader._data.mus[result_index].cuda()
+            vars = self.train_loader._data.vars[result_index].cuda()
+            # one hot encode
+            one_hot_encode = F.one_hot(torch.tensor([self.current_t]), self.train_loader._data.num_scenes).cuda()
+            input_data = torch.cat([mus, vars]).unsqueeze(0).cuda()
+            sampled_latent, weight, mu, sigma = self.MDN.sample(input_data)
+            predicted_latent = sampled_latent.squeeze(0)
+            result_index = self.probe()
+            current_t = int(self.train_loader._data.scene_ids[result_index])
+            predicted_t.append(current_t)
+            print(predicted_t)
+        count = sum(1 for number in predicted_t if number == gt_scene)
+        print (count / len(predicted_t))
+
+    def callback_predict_probe_10(sender, image_path):
+        parts = image_path.split(',')
+        num_experiments = int(parts[0])
+        image_path = parts[1]
+
+        gt_index = self.find_index(image_path)
+        gt_scene = int(self.train_loader._data.scene_ids[gt_index]) + 1
+        predicted_t = []
+        for _ in range(num_experiments):
+            print("Predicted timestamp:", predicted_t)
+            print("Ground truth scene:", gt_scene)
+            update_latent_from_predicted(image_path)
+            result_index = self.probe()
+            mus = self.train_loader._data.mus[result_index].cuda()
+            vars = self.train_loader._data.vars[result_index].cuda()
+            # one hot encode
+            one_hot_encode = F.one_hot(torch.tensor([self.current_t]), self.train_loader._data.num_scenes).cuda()
+            input_data = torch.cat([mus, vars]).unsqueeze(0).cuda()
+            sampled_latent, weight, mu, sigma = self.MDN.sample(input_data)
+            predicted_latent = sampled_latent.squeeze(0)
+            result_index = self.probe()
+            current_t = int(self.train_loader._data.scene_ids[result_index])
+            predicted_t.append(current_t)
+            print(predicted_t)
+
+        count = sum(1 for number in predicted_t if number == gt_scene)
+        print (count / len(predicted_t))

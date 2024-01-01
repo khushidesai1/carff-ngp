@@ -349,28 +349,40 @@ class NeRFRenderer(nn.Module):
                 
                 # Verify a target location on the rendered image.
                 target_locations = {}
+                car_locations = {}
                 # T0 truck location
                 target_locations[0] = torch.tensor([0.14833795, 0.02983168, -0.33660668]).to(xyzs.get_device())
+                car_locations[0] = torch.tensor([0.1416874, 0.01506077, 0.1599073]).to(xyzs.get_device()) 
                 # T1 truck location
                 target_locations[1] = torch.tensor([0.14917257, 0.03152247, -0.05158296]).to(xyzs.get_device())
+                car_locations[1] = torch.tensor([0.13892217, 0.00947224, 0.40872651]).to(xyzs.get_device()) 
                 # T2 truck location
                 target_locations[2] = torch.tensor([0.14624707, 0.03038827, 0.17848531]).to(xyzs.get_device())
+                car_locations[2] = torch.tensor([0.13723373, 0.03977614, -0.068535]).to(xyzs.get_device()) 
                 # T3 truck location
                 target_locations[3] = torch.tensor([0.14833795, 0.02983168, -0.33660668]).to(xyzs.get_device())
+                car_locations[3] = torch.tensor([0.12936965, 0.01920666, 0.40456722]).to(xyzs.get_device()) 
                 # T4 truck location
                 target_locations[4] = torch.tensor([0.14755751, 0.0269241, -0.27873851]).to(xyzs.get_device())
+                car_locations[4] = torch.tensor([0.13921036, 0.02017598, 0.16569142]).to(xyzs.get_device()) 
                 # T5 truck location
-                target_locations[5] = torch.tensor([0.14674433, 0.02607318, -0.21582227]).to(xyzs.get_device())
+                target_locations[5] = torch.tensor([0.13780347, 0.0118743, 0.41263683]).to(xyzs.get_device())
+                car_locations[5] = torch.tensor([0.12936965, 0.01920666, 0.40456722]).to(xyzs.get_device()) 
 
                 if target_positions is not None:
-                    tolerance = 0.05
+                    tolerance = 0.04
                     target_location = target_locations[target_positions]
+                    car_location = car_locations[target_positions]
                     distances = torch.norm(xyzs - target_location, dim=-1)
+                    car_distances = torch.norm(xyzs - car_location, dim=-1)
                     close_to_target = distances < tolerance
+                    close_to_car = distances < tolerance
 
                     selected_densities = sigmas[close_to_target]
+                    selected_car_densities = sigmas[close_to_car]
                     if len(selected_densities) > 0:
                         mean_densities.append(torch.mean(selected_densities).item())
+                        mean_densities.append(torch.mean(selected_car_densities).item())
 
                 raymarching.composite_rays(n_alive, n_step, rays_alive[i % 2], rays_t[i % 2], sigmas.float(), rgbs.float(), deltas, weights_sum, depth, image)
 
