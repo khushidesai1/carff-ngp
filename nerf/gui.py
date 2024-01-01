@@ -231,6 +231,13 @@ class NeRFGUI:
             densities[i] = self.calculate_densities(i)
         return densities
 
+    def probe_densities(self):
+        densities = {}
+        for i in range(6):
+            densities[i] = self.calculate_densities(i)
+        probed_result = max(densities, key=densities.get)
+        return probed_result
+
     def find_index(self, input):
         '''
         helper method to find the corresponding index of the input path
@@ -333,8 +340,7 @@ class NeRFGUI:
             input_data = torch.cat([mus, vars]).unsqueeze(0).cuda()
             sampled_latent, weight, mu, sigma = self.MDN.sample(input_data)
             predicted_latent = sampled_latent.squeeze(0)
-            result_index = self.probe()
-            current_t = int(self.train_loader._data.scene_ids[result_index])
+            current_t = self.probe_densities()
             predicted_t.append(current_t)
             print(predicted_t)
         count = sum(1 for number in predicted_t if number == gt_scene)
@@ -360,8 +366,7 @@ class NeRFGUI:
             input_data = torch.cat([mus, vars]).unsqueeze(0).cuda()
             sampled_latent, weight, mu, sigma = self.MDN.sample(input_data)
             predicted_latent = sampled_latent.squeeze(0)
-            result_index = self.probe()
-            current_t = int(self.train_loader._data.scene_ids[result_index])
+            current_t = self.probe_densities()
             predicted_t.append(current_t)
             print(predicted_t)
 
