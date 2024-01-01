@@ -714,3 +714,83 @@
 [INFO] #parameters: 12612208
 [INFO] Loading latest checkpoint ...
 [WARN] No checkpoint found, model randomly initialized.
+[INFO] Trainer: ngp | 2023-12-31_16-21-40 | cuda | fp16 | 3_command
+[INFO] #parameters: 12612208
+[INFO] Loading latest checkpoint ...
+[WARN] No checkpoint found, model randomly initialized.
+[INFO] Trainer: ngp | 2023-12-31_16-31-42 | cuda | fp16 | 3_command
+[INFO] #parameters: 12612208
+[INFO] Loading latest checkpoint ...
+[WARN] No checkpoint found, model randomly initialized.
+[INFO] Trainer: ngp | 2023-12-31_16-48-30 | cuda | fp16 | 3_command
+[INFO] #parameters: 12612208
+[INFO] Loading latest checkpoint ...
+[WARN] No checkpoint found, model randomly initialized.
+[INFO] Trainer: ngp | 2023-12-31_16-50-57 | cuda | fp16 | 3_command
+[INFO] #parameters: 12612208
+[INFO] Loading latest checkpoint ...
+[WARN] No checkpoint found, model randomly initialized.
+[INFO] Trainer: ngp | 2023-12-31_16-52-59 | cuda | fp16 | 3_command
+[INFO] #parameters: 12612208
+[INFO] Loading latest checkpoint ...
+[WARN] No checkpoint found, model randomly initialized.
+[INFO] Trainer: ngp | 2023-12-31_17-02-23 | cuda | fp16 | 3_command
+[INFO] #parameters: 12612208
+[INFO] Loading latest checkpoint ...
+[WARN] No checkpoint found, model randomly initialized.
+[INFO] Trainer: ngp | 2023-12-31_17-12-44 | cuda | fp16 | 3_command
+[INFO] #parameters: 12612208
+[INFO] Loading latest checkpoint ...
+[WARN] No checkpoint found, model randomly initialized.
+[INFO] Trainer: ngp | 2023-12-31_17-23-54 | cuda | fp16 | 3_command
+[INFO] #parameters: 12612208
+[INFO] Loading latest checkpoint ...
+[WARN] No checkpoint found, model randomly initialized.
+[INFO] Trainer: ngp | 2023-12-31_17-36-14 | cuda | fp16 | 3_command
+[INFO] #parameters: 12612208
+[INFO] Loading latest checkpoint ...
+[WARN] No checkpoint found, model randomly initialized.
+[INFO] Trainer: ngp | 2023-12-31_17-36-45 | cuda | fp16 | 3_command
+[INFO] #parameters: 12612208
+[INFO] Loading latest checkpoint ...
+[WARN] No checkpoint found, model randomly initialized.
+[INFO] Trainer: ngp | 2023-12-31_17-44-25 | cuda | fp16 | 3_command
+[INFO] #parameters: 12612208
+[INFO] Loading latest checkpoint ...
+[WARN] No checkpoint found, model randomly initialized.
+[INFO] Trainer: ngp | 2023-12-31_17-45-48 | cuda | fp16 | 3_command
+[INFO] #parameters: 12612208
+[INFO] Loading latest checkpoint ...
+[WARN] No checkpoint found, model randomly initialized.
+[INFO] Trainer: ngp | 2023-12-31_17-57-10 | cuda | fp16 | 3_command
+[INFO] #parameters: 12612208
+[INFO] Loading latest checkpoint ...
+[WARN] No checkpoint found, model randomly initialized.
+[INFO] Trainer: ngp | 2023-12-31_18-12-37 | cuda | fp16 | 3_command
+[INFO] #parameters: 12612208
+[INFO] Loading latest checkpoint ...
+[WARN] No checkpoint found, model randomly initialized.
+[INFO] Trainer: ngp | 2023-12-31_18-25-30 | cuda | fp16 | 3_command
+[INFO] #parameters: 12612208
+[INFO] Loading latest checkpoint ...
+[WARN] No checkpoint found, model randomly initialized.
+[INFO] Trainer: ngp | 2023-12-31_18-46-02 | cuda | fp16 | 3_command
+[INFO] #parameters: 12612208
+[INFO] Loading latest checkpoint ...
+[WARN] No checkpoint found, model randomly initialized.
+[INFO] Trainer: ngp | 2023-12-31_18-57-08 | cuda | fp16 | 3_command
+[INFO] #parameters: 12612208
+[INFO] Loading latest checkpoint ...
+[WARN] No checkpoint found, model randomly initialized.
+[INFO] Trainer: ngp | 2023-12-31_19-07-59 | cuda | fp16 | 3_command
+[INFO] #parameters: 12612208
+[INFO] Loading latest checkpoint ...
+[WARN] No checkpoint found, model randomly initialized.
+[INFO] Trainer: ngp | 2023-12-31_19-17-16 | cuda | fp16 | 3_command
+[INFO] #parameters: 12612208
+[INFO] Loading latest checkpoint ...
+[WARN] No checkpoint found, model randomly initialized.
+[INFO] Trainer: ngp | 2023-12-31_19-27-08 | cuda | fp16 | 3_command
+[INFO] #parameters: 12612208
+[INFO] Loading latest checkpoint ...
+[WARN] No checkpoint found, model randomly initialized.
