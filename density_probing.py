@@ -295,14 +295,14 @@ for t in range(6):
 
 # Performing example density probing using range of car positions
 print("Probing density for prediction of t1...")
-avg_densities = gui.update_and_compute_densities("train/cam-v68-t0", dest_path=f"rendered_t1_pred.png")
+avg_densities = gui.update_and_compute_densities("train/cam-v2-t0", dest_path=f"rendered_t1_pred.png")
 for i in range(6):
     print(f"Average density at car position {i}:", avg_densities[i])
 max_density = max(avg_densities, key=avg_densities.get)
 print(f"Maximum density is at car position {max_density}:", avg_densities[max_density])
 
 print("Probing density for prediction of t4...")
-avg_densities = gui.update_and_compute_densities("train/cam-v68-t3", dest_path=f"rendered_t4_pred.png")
+avg_densities = gui.update_and_compute_densities("train/cam-v2-t3", dest_path=f"rendered_t4_pred.png")
 for i in range(6):
     print(f"Average density at car position {i}:", avg_densities[i])
 max_density = max(avg_densities, key=avg_densities.get)
