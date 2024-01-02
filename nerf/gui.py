@@ -232,11 +232,16 @@ class NeRFGUI:
         return densities
 
     def probe_densities(self):
+        indices = {}
+        for i, item in enumerate(self.train_loader._data.paths):
+            if item.startswith("train/cam-v2-") or item.startswith("train_ego_actor/cam-v2-"):
+                indices[item] = i
         densities = {}
         for i in range(6):
             densities[i] = self.calculate_densities(i)
         probed_result = max(densities, key=densities.get)
-        return probed_result
+        result_index = indices[sorted(indices.keys())[probed_result]]
+        return probed_result, result_index
 
     def find_index(self, input):
         '''
@@ -322,17 +327,14 @@ class NeRFGUI:
                 self.train_step()
             self.test_step()
 
-    def callback_toggle_probe_10(sender, image_path):
-        parts = image_path.split(',')
-        num_experiments = int(parts[0])
-        image_path = parts[1]
+    def callback_toggle_probe_10(self, image_path, num_experiments):
         gt_index = self.find_index(image_path)
         gt_scene = int(self.train_loader._data.scene_ids[gt_index])
         
         predicted_t = []
         for _ in range(num_experiments):
             update_latent_from_image(image_path)
-            result_index = self.probe()
+            _, result_index = self.probe_densities()
             mus = self.train_loader._data.mus[result_index].cuda()
             vars = self.train_loader._data.vars[result_index].cuda()
             # one hot encode
@@ -340,17 +342,13 @@ class NeRFGUI:
             input_data = torch.cat([mus, vars]).unsqueeze(0).cuda()
             sampled_latent, weight, mu, sigma = self.MDN.sample(input_data)
             predicted_latent = sampled_latent.squeeze(0)
-            current_t = self.probe_densities()
+            current_t, _ = self.probe_densities()
             predicted_t.append(current_t)
             print(predicted_t)
         count = sum(1 for number in predicted_t if number == gt_scene)
         print (count / len(predicted_t))
 
-    def callback_predict_probe_10(sender, image_path):
-        parts = image_path.split(',')
-        num_experiments = int(parts[0])
-        image_path = parts[1]
-
+    def callback_predict_probe_10(self, image_path, num_experiments):
         gt_index = self.find_index(image_path)
         gt_scene = int(self.train_loader._data.scene_ids[gt_index]) + 1
         predicted_t = []
@@ -358,7 +356,7 @@ class NeRFGUI:
             print("Predicted timestamp:", predicted_t)
             print("Ground truth scene:", gt_scene)
             update_latent_from_predicted(image_path)
-            result_index = self.probe()
+            _, result_index = self.probe_densities()
             mus = self.train_loader._data.mus[result_index].cuda()
             vars = self.train_loader._data.vars[result_index].cuda()
             # one hot encode
@@ -366,7 +364,7 @@ class NeRFGUI:
             input_data = torch.cat([mus, vars]).unsqueeze(0).cuda()
             sampled_latent, weight, mu, sigma = self.MDN.sample(input_data)
             predicted_latent = sampled_latent.squeeze(0)
-            current_t = self.probe_densities()
+            current_t, _ = self.probe_densities()
             predicted_t.append(current_t)
             print(predicted_t)
 
