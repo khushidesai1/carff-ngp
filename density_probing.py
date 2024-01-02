@@ -261,7 +261,7 @@ scheduler = lambda optimizer: optim.lr_scheduler.LambdaLR(optimizer, lambda iter
 trainer = Trainer('ngp', opt, model, device=device, workspace=opt.workspace, optimizer=optimizer, criterion=criterion, ema_decay=0.95, fp16=opt.fp16, lr_scheduler=scheduler, scheduler_update_every_step=True, metrics=[PSNRMeter()], use_checkpoint=opt.ckpt, eval_interval=50)
 gui = NeRFGUI(opt, trainer, train_loader, input_path="train/cam-v2-t0")
 
-gui.render(1100) # 500 to reach 0.55 progress
+gui.render(1500) # 500 to reach 0.55 progress
 
 # Getting positions for each timestamp
 
