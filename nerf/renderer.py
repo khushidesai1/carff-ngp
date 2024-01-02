@@ -374,33 +374,33 @@ class NeRFRenderer(nn.Module):
                 target_locations[5] = torch.tensor([0.13780347, 0.0118743, 0.41263683]).to(xyzs.get_device())
                 car_locations[5] = torch.tensor([0.12936965, 0.01920666, 0.40456722]).to(xyzs.get_device()) 
 
-                target_location = target_locations[3]
-                distances = torch.norm(xyzs - target_location, dim=-1)
-                close_to_target = distances < tolerance
+                # target_location = target_locations[3]
+                # distances = torch.norm(xyzs - target_location, dim=-1)
+                # close_to_target = distances < tolerance
 
-                rgbs[close_to_target] = color1
+                # rgbs[close_to_target] = color1
 
-                target_location = car_locations[3]
-                distances = torch.norm(xyzs - target_location, dim=-1)
-                close_to_target = distances < tolerance
+                # target_location = car_locations[3]
+                # distances = torch.norm(xyzs - target_location, dim=-1)
+                # close_to_target = distances < tolerance
 
-                rgbs[close_to_target] = color2
+                # rgbs[close_to_target] = color2
 
                 if target_positions is not None:
                     target_location = target_locations[target_positions]
                     distances = torch.norm(xyzs - target_location, dim=-1)
                     close_to_target = distances < tolerance
 
-                    car_location = car_locations[target_positions]
-                    car_distances = torch.norm(xyzs - car_location, dim=-1)
-                    close_to_car = car_distances < tolerance
+                    # car_location = car_locations[target_positions]
+                    # car_distances = torch.norm(xyzs - car_location, dim=-1)
+                    # close_to_car = car_distances < tolerance
 
                     selected_densities = sigmas[close_to_target]
-                    selected_car_densities = sigmas[close_to_car]
+                    # selected_car_densities = sigmas[close_to_car]
                     if len(selected_densities) > 0:
                         mean_densities.append(torch.mean(selected_densities).item())
-                    if len(selected_car_densities) > 0:
-                        mean_densities.append(torch.mean(selected_car_densities).item())
+                    # if len(selected_car_densities) > 0:
+                    #     mean_densities.append(torch.mean(selected_car_densities).item())
 
                 raymarching.composite_rays(n_alive, n_step, rays_alive[i % 2], rays_t[i % 2], sigmas.float(), rgbs.float(), deltas, weights_sum, depth, image)
 
