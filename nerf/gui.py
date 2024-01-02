@@ -327,7 +327,7 @@ class NeRFGUI:
                 self.train_step()
             self.test_step()
 
-    def callback_toggle_probe_10(self, image_path, num_experiments):
+    def toggle_probe_10(self, image_path, num_experiments):
         gt_index = self.find_index(image_path)
         gt_scene = int(self.train_loader._data.scene_ids[gt_index])
         
@@ -348,7 +348,7 @@ class NeRFGUI:
         count = sum(1 for number in predicted_t if number == gt_scene)
         print (count / len(predicted_t))
 
-    def callback_predict_probe_10(self, image_path, num_experiments):
+    def predict_probe_10(self, image_path, num_experiments):
         gt_index = self.find_index(image_path)
         gt_scene = int(self.train_loader._data.scene_ids[gt_index]) + 1
         predicted_t = []
