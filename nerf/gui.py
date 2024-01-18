@@ -333,7 +333,7 @@ class NeRFGUI:
         
         predicted_t = []
         for _ in range(num_experiments):
-            update_latent_from_image(image_path)
+            self.update_latent_from_image(image_path)
             _, result_index = self.probe_densities()
             mus = self.train_loader._data.mus[result_index].cuda()
             vars = self.train_loader._data.vars[result_index].cuda()
@@ -355,7 +355,7 @@ class NeRFGUI:
         for _ in range(num_experiments):
             print("Predicted timestamp:", predicted_t)
             print("Ground truth scene:", gt_scene)
-            update_latent_from_predicted(image_path)
+            self.update_latent_from_predicted(image_path)
             _, result_index = self.probe_densities()
             mus = self.train_loader._data.mus[result_index].cuda()
             vars = self.train_loader._data.vars[result_index].cuda()
