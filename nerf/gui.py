@@ -343,10 +343,11 @@ class NeRFGUI:
             sampled_latent, weight, mu, sigma = self.MDN.sample(input_data)
             predicted_latent = sampled_latent.squeeze(0)
             current_t, _ = self.probe_densities()
-            predicted_t.append(current_t)
+            predicted_t.append(current_t + 1)
             print(predicted_t)
         count = sum(1 for number in predicted_t if number == gt_scene)
-        print (count / len(predicted_t))
+        acc = count / len(predicted_t)
+        return acc
 
     def predict_probe_10(self, image_path, num_experiments):
         gt_index = self.find_index(image_path)
@@ -368,4 +369,5 @@ class NeRFGUI:
             predicted_t.append(current_t + 1)
 
         count = sum(1 for number in predicted_t if number == gt_scene)
-        print (count / len(predicted_t))
+        acc = count / len(predicted_t)
+        return acc
