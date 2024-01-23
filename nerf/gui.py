@@ -343,7 +343,7 @@ class NeRFGUI:
             sampled_latent, weight, mu, sigma = self.MDN.sample(input_data)
             predicted_latent = sampled_latent.squeeze(0)
             current_t, _ = self.probe_densities()
-            predicted_t.append(current_t + 1)
+            predicted_t.append(current_t)
             print(predicted_t)
         count = sum(1 for number in predicted_t if number == gt_scene)
         acc = count / len(predicted_t)
@@ -366,7 +366,7 @@ class NeRFGUI:
             sampled_latent, weight, mu, sigma = self.MDN.sample(input_data)
             predicted_latent = sampled_latent.squeeze(0)
             current_t, _ = self.probe_densities()
-            predicted_t.append(current_t + 1)
+            predicted_t.append(current_t)
 
         count = sum(1 for number in predicted_t if number == gt_scene)
         acc = count / len(predicted_t)
