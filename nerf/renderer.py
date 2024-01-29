@@ -374,17 +374,18 @@ class NeRFRenderer(nn.Module):
                 target_locations[5] = torch.tensor([0.14382614, 0.0354306, -0.21696864]).to(xyzs.get_device())
                 car_locations[5] =  torch.tensor([0.13780347, 0.0118743, 0.41263683]).to(xyzs.get_device())
 
-                target_location = target_locations[target_positions]
-                distances = torch.norm(xyzs - target_location, dim=-1)
-                close_to_target = distances < tolerance
-
-                rgbs[close_to_target] = color1
-
-                target_location = car_locations[target_positions]
-                distances = torch.norm(xyzs - target_location, dim=-1)
-                close_to_target = distances < tolerance
-
-                rgbs[close_to_target] = color2
+                if target_positions is not None:
+                    target_location = target_locations[target_positions]
+                    distances = torch.norm(xyzs - target_location, dim=-1)
+                    close_to_target = distances < tolerance
+    
+                    rgbs[close_to_target] = color1
+    
+                    target_location = car_locations[target_positions]
+                    distances = torch.norm(xyzs - target_location, dim=-1)
+                    close_to_target = distances < tolerance
+    
+                    rgbs[close_to_target] = color2
 
                 if target_positions is not None:
                     target_location = target_locations[target_positions]
