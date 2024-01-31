@@ -394,16 +394,16 @@ class NeRFRenderer(nn.Module):
                     distances = torch.norm(xyzs - target_location, dim=-1)
                     close_to_target = distances < tolerance
 
-                    # car_location = car_locations[target_positions]
-                    # car_distances = torch.norm(xyzs - car_location, dim=-1)
-                    # close_to_car = car_distances < tolerance
+                    car_location = car_locations[target_positions]
+                    car_distances = torch.norm(xyzs - car_location, dim=-1)
+                    close_to_car = car_distances < tolerance
 
                     selected_densities = sigmas[close_to_target]
-                    # selected_car_densities = sigmas[close_to_car]
+                    selected_car_densities = sigmas[close_to_car]
                     if len(selected_densities) > 0:
                         mean_densities.append(torch.mean(selected_densities).item())
-                    # if len(selected_car_densities) > 0:
-                    #     mean_densities.append(torch.mean(selected_car_densities).item())
+                    if len(selected_car_densities) > 0:
+                        mean_densities.append(torch.mean(selected_car_densities).item())
 
                 raymarching.composite_rays(n_alive, n_step, rays_alive[i % 2], rays_t[i % 2], sigmas.float(), rgbs.float(), deltas, weights_sum, depth, image)
 
