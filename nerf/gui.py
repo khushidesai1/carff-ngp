@@ -185,7 +185,7 @@ class NeRFGUI:
         pred_img = torch.from_numpy(outputs['image']) #.reshape(-1, H, W, 3)
         save_image(pred_img.permute(2, 0, 1), dest_path)
         plt.imshow(pred_img)
-        return outputs
+        # return outputs
     
     def calculate_densities(self, target_positions):
         '''
@@ -327,7 +327,7 @@ class NeRFGUI:
                 self.train_step()
             self.test_step()
 
-    def toggle_probe_10(self, image_path, num_experiments):
+    def toggle_probe_n(self, image_path, num_experiments):
         gt_index = self.find_index(image_path)
         gt_scene = int(self.train_loader._data.scene_ids[gt_index])
         
@@ -349,7 +349,7 @@ class NeRFGUI:
         acc = count / len(predicted_t)
         return acc
 
-    def predict_probe_10(self, image_path, num_experiments):
+    def predict_probe_n(self, image_path, num_experiments):
         gt_index = self.find_index(image_path)
         gt_scene = int(self.train_loader._data.scene_ids[gt_index]) + 1
         predicted_t = []
