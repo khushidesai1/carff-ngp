@@ -123,7 +123,7 @@ class NeRFRenderer(nn.Module):
         self.mean_count = 0
         self.local_step = 0
 
-    def run(self, rays_o, rays_d, num_steps=128, upsample_steps=128, bg_color=None, perturb=False, target_positions=None, **kwargs):
+    def run(self, rays_o, rays_d, num_steps=128, upsample_steps=128, bg_color=None, perturb=False, target_positions=None, color_t=0, **kwargs):
 
         prefix = rays_o.shape[:-1]
         rays_o = rays_o.contiguous().view(-1, 3)
@@ -236,7 +236,7 @@ class NeRFRenderer(nn.Module):
         }
 
 
-    def run_cuda(self, rays_o, rays_d, latents, dt_gamma=0, bg_color=None, perturb=False, force_all_rays=False, max_steps=1024, target_positions=None, **kwargs):
+    def run_cuda(self, rays_o, rays_d, latents, dt_gamma=0, bg_color=None, perturb=False, force_all_rays=False, max_steps=1024, target_positions=None, color_t=0, **kwargs):
         # rays_o, rays_d: [B, N, 3], assumes B == 1
         # return: image: [B, N, 3], depth: [B, N]
 
@@ -351,7 +351,7 @@ class NeRFRenderer(nn.Module):
                 color1 = torch.tensor([0., 0., 1.], dtype=rgbs.dtype).to(rgbs.get_device())
                 color2 = torch.tensor([0., 1., 0.], dtype=rgbs.dtype).to(rgbs.get_device())
 
-                tolerance = 0.07
+                tolerance = 0.05
 
                 target_locations = {}
                 car_locations = {}
@@ -368,19 +368,22 @@ class NeRFRenderer(nn.Module):
                 target_locations[3] = torch.tensor([0.15180872, 0.03262607, -0.33373854]).to(xyzs.get_device())
                 car_locations[3] = torch.tensor([0.14536471, 0.01380782, -0.07035845]).to(xyzs.get_device()) 
                 # T4 truck location
-                target_locations[4] = torch.tensor([0.14755751, 0.0269241, -0.27873851]).to(xyzs.get_device())
-                car_locations[4] = torch.tensor([0.13921036, 0.02017598, 0.16569142]).to(xyzs.get_device()) 
+                # target_locations[4] = torch.tensor([0.14755751, 0.0269241, -0.27873851]).to(xyzs.get_device())
+                target_locations[4] = torch.tensor([0.149683115, 0.029775085, -0.296238525]).to(xyzs.get_device())
+                # target_locations[4] = torch.tensor([0.15249956, 0.031077, -0.27964719]).to(xyzs.get_device())
+                car_locations[4] = torch.tensor([0.1389209, 0.02671495, 0.16611843]).to(xyzs.get_device()) 
                 # T5 truck location
-                target_locations[5] = torch.tensor([0.14382614, 0.0354306, -0.21696864]).to(xyzs.get_device())
-                car_locations[5] =  torch.tensor([0.13780347, 0.0118743, 0.41263683]).to(xyzs.get_device())
+                # target_locations[5] = torch.tensor([0.14755751, 0.0269241, -0.27873851]).to(xyzs.get_device())
+                target_locations[5] = torch.tensor([0.14439805, 0.03065605, -0.19418989]).to(xyzs.get_device())
+                car_locations[5] =  torch.tensor([0.13999184, 0.01417865, 0.39448936]).to(xyzs.get_device())
 
-                target_location = target_locations[0]
+                target_location = target_locations[color_t]
                 distances = torch.norm(xyzs - target_location, dim=-1)
                 close_to_target = distances < tolerance
 
                 rgbs[close_to_target] = color1
 
-                target_location = car_locations[0]
+                target_location = car_locations[color_t]
                 distances = torch.norm(xyzs - target_location, dim=-1)
                 close_to_target = distances < tolerance
 
@@ -391,16 +394,16 @@ class NeRFRenderer(nn.Module):
                     distances = torch.norm(xyzs - target_location, dim=-1)
                     close_to_target = distances < tolerance
 
-                    # car_location = car_locations[target_positions]
-                    # car_distances = torch.norm(xyzs - car_location, dim=-1)
-                    # close_to_car = car_distances < tolerance
+                    car_location = car_locations[target_positions]
+                    car_distances = torch.norm(xyzs - car_location, dim=-1)
+                    close_to_car = car_distances < tolerance
 
                     selected_densities = sigmas[close_to_target]
-                    # selected_car_densities = sigmas[close_to_car]
+                    selected_car_densities = sigmas[close_to_car]
                     if len(selected_densities) > 0:
-                        mean_densities.append(torch.mean(selected_densities).item())
-                    # if len(selected_car_densities) > 0:
-                    #     mean_densities.append(torch.mean(selected_car_densities).item())
+                        mean_densities.append(torch.sum(selected_densities).item())
+                    if len(selected_car_densities) > 0:
+                        mean_densities.append(torch.sum(selected_car_densities).item())
 
                 raymarching.composite_rays(n_alive, n_step, rays_alive[i % 2], rays_t[i % 2], sigmas.float(), rgbs.float(), deltas, weights_sum, depth, image)
 
@@ -593,7 +596,7 @@ class NeRFRenderer(nn.Module):
             self.mean_count = int(self.step_counter[:total_step, 0].sum().item() / total_step)
         self.local_step = 0
 
-    def render(self, rays_o, rays_d, latents, staged=False, max_ray_batch=4096, target_positions=None, **kwargs):
+    def render(self, rays_o, rays_d, latents, staged=False, max_ray_batch=4096, target_positions=None, color_t=0, **kwargs):
         if self.cuda_ray:
             _run = self.run_cuda
         else:
@@ -613,7 +616,7 @@ class NeRFRenderer(nn.Module):
                 head = 0
                 while head < N:
                     tail = min(head + max_ray_batch, N)
-                    results_ = _run(rays_o[b:b+1, head:tail], rays_d[b:b+1, head:tail], target_positions=target_positions **kwargs)
+                    results_ = _run(rays_o[b:b+1, head:tail], rays_d[b:b+1, head:tail], target_positions=target_positions, color_t=color_t **kwargs)
                     depth[b:b+1, head:tail] = results_['depth']
                     image[b:b+1, head:tail] = results_['image']
                     # red_positions[b:b+1, head:tail] = results_['red_positions']
@@ -625,7 +628,7 @@ class NeRFRenderer(nn.Module):
             # results['red_positions'] = red_positions
 
         else:
-            results = _run(rays_o, rays_d, latents, target_positions=target_positions, **kwargs)
+            results = _run(rays_o, rays_d, latents, target_positions=target_positions, color_t=color_t **kwargs)
             # print(results.keys())
 
         return results

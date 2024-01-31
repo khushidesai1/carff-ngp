@@ -163,7 +163,7 @@ class NeRFGUI:
                 self.render_buffer = (self.render_buffer * self.spp + outputs['image']) / (self.spp + 1)
                 self.spp += 1
 
-    def render_bev(self, dest_path='rendered.png'):
+    def render_bev(self, dest_path='rendered.png', color_t=0):
         '''
         for terminal viz, renders the bev image
         '''
@@ -181,11 +181,11 @@ class NeRFGUI:
         latents = self.test_latent.cuda().float()
         poses = self.train_loader._data.poses[rand_index].cpu().numpy() # [B, 4, 4]
         intrinsics = self.train_loader._data.intrinsics
-        outputs = self.trainer.test_gui(poses, intrinsics, W, H, latents, bg_color=None, spp=1, downscale=1)
+        outputs = self.trainer.test_gui(poses, intrinsics, W, H, latents, bg_color=None, spp=1, downscale=1, color_t=color_t)
         pred_img = torch.from_numpy(outputs['image']) #.reshape(-1, H, W, 3)
         save_image(pred_img.permute(2, 0, 1), dest_path)
         plt.imshow(pred_img)
-        return outputs
+        # return outputs
     
     def calculate_densities(self, target_positions):
         '''
@@ -327,13 +327,13 @@ class NeRFGUI:
                 self.train_step()
             self.test_step()
 
-    def toggle_probe_10(self, image_path, num_experiments):
+    def toggle_probe_n(self, image_path, num_experiments):
         gt_index = self.find_index(image_path)
         gt_scene = int(self.train_loader._data.scene_ids[gt_index])
         
         predicted_t = []
         for _ in range(num_experiments):
-            update_latent_from_image(image_path)
+            self.update_latent_from_image(image_path)
             _, result_index = self.probe_densities()
             mus = self.train_loader._data.mus[result_index].cuda()
             vars = self.train_loader._data.vars[result_index].cuda()
@@ -346,16 +346,17 @@ class NeRFGUI:
             predicted_t.append(current_t)
             print(predicted_t)
         count = sum(1 for number in predicted_t if number == gt_scene)
-        print (count / len(predicted_t))
+        acc = count / len(predicted_t)
+        return acc
 
-    def predict_probe_10(self, image_path, num_experiments):
+    def predict_probe_n(self, image_path, num_experiments):
         gt_index = self.find_index(image_path)
         gt_scene = int(self.train_loader._data.scene_ids[gt_index]) + 1
         predicted_t = []
         for _ in range(num_experiments):
-            print("Predicted timestamp:", predicted_t)
+            print("Predicted timestamps:", predicted_t)
             print("Ground truth scene:", gt_scene)
-            update_latent_from_predicted(image_path)
+            self.update_latent_from_predicted(image_path)
             _, result_index = self.probe_densities()
             mus = self.train_loader._data.mus[result_index].cuda()
             vars = self.train_loader._data.vars[result_index].cuda()
@@ -366,7 +367,7 @@ class NeRFGUI:
             predicted_latent = sampled_latent.squeeze(0)
             current_t, _ = self.probe_densities()
             predicted_t.append(current_t)
-            print(predicted_t)
 
         count = sum(1 for number in predicted_t if number == gt_scene)
-        print (count / len(predicted_t))
+        acc = count / len(predicted_t)
+        return acc
