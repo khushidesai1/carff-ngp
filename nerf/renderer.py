@@ -373,8 +373,8 @@ class NeRFRenderer(nn.Module):
                 # target_locations[4] = torch.tensor([0.15249956, 0.031077, -0.27964719]).to(xyzs.get_device())
                 car_locations[4] = torch.tensor([0.1389209, 0.02671495, 0.16611843]).to(xyzs.get_device()) 
                 # T5 truck location
-                target_locations[5] = torch.tensor([0.14755751, 0.0269241, -0.27873851]).to(xyzs.get_device())
-                # target_locations[5] = torch.tensor([0.14439805, 0.03065605, -0.21418989]).to(xyzs.get_device())
+                # target_locations[5] = torch.tensor([0.14755751, 0.0269241, -0.27873851]).to(xyzs.get_device())
+                target_locations[5] = torch.tensor([0.14439805, 0.03065605, -0.21418989]).to(xyzs.get_device())
                 car_locations[5] =  torch.tensor([0.13999184, 0.01417865, 0.39448936]).to(xyzs.get_device())
 
                 target_location = target_locations[4]
