@@ -123,7 +123,7 @@ class NeRFRenderer(nn.Module):
         self.mean_count = 0
         self.local_step = 0
 
-    def run(self, rays_o, rays_d, num_steps=128, upsample_steps=128, bg_color=None, perturb=False, target_positions=None, **kwargs):
+    def run(self, rays_o, rays_d, num_steps=128, upsample_steps=128, bg_color=None, perturb=False, target_positions=None, color_t=0, **kwargs):
 
         prefix = rays_o.shape[:-1]
         rays_o = rays_o.contiguous().view(-1, 3)
@@ -236,7 +236,7 @@ class NeRFRenderer(nn.Module):
         }
 
 
-    def run_cuda(self, rays_o, rays_d, latents, dt_gamma=0, bg_color=None, perturb=False, force_all_rays=False, max_steps=1024, target_positions=None, **kwargs):
+    def run_cuda(self, rays_o, rays_d, latents, dt_gamma=0, bg_color=None, perturb=False, force_all_rays=False, max_steps=1024, target_positions=None, color_t=0, **kwargs):
         # rays_o, rays_d: [B, N, 3], assumes B == 1
         # return: image: [B, N, 3], depth: [B, N]
 
@@ -377,13 +377,13 @@ class NeRFRenderer(nn.Module):
                 target_locations[5] = torch.tensor([0.14439805, 0.03065605, -0.19418989]).to(xyzs.get_device())
                 car_locations[5] =  torch.tensor([0.13999184, 0.01417865, 0.39448936]).to(xyzs.get_device())
 
-                target_location = target_locations[1]
+                target_location = target_locations[color_t]
                 distances = torch.norm(xyzs - target_location, dim=-1)
                 close_to_target = distances < tolerance
 
                 rgbs[close_to_target] = color1
 
-                target_location = car_locations[1]
+                target_location = car_locations[color_t]
                 distances = torch.norm(xyzs - target_location, dim=-1)
                 close_to_target = distances < tolerance
 
@@ -596,7 +596,7 @@ class NeRFRenderer(nn.Module):
             self.mean_count = int(self.step_counter[:total_step, 0].sum().item() / total_step)
         self.local_step = 0
 
-    def render(self, rays_o, rays_d, latents, staged=False, max_ray_batch=4096, target_positions=None, **kwargs):
+    def render(self, rays_o, rays_d, latents, staged=False, max_ray_batch=4096, target_positions=None, color_t=0, **kwargs):
         if self.cuda_ray:
             _run = self.run_cuda
         else:
@@ -616,7 +616,7 @@ class NeRFRenderer(nn.Module):
                 head = 0
                 while head < N:
                     tail = min(head + max_ray_batch, N)
-                    results_ = _run(rays_o[b:b+1, head:tail], rays_d[b:b+1, head:tail], target_positions=target_positions **kwargs)
+                    results_ = _run(rays_o[b:b+1, head:tail], rays_d[b:b+1, head:tail], target_positions=target_positions, color_t=color_t **kwargs)
                     depth[b:b+1, head:tail] = results_['depth']
                     image[b:b+1, head:tail] = results_['image']
                     # red_positions[b:b+1, head:tail] = results_['red_positions']
@@ -628,7 +628,7 @@ class NeRFRenderer(nn.Module):
             # results['red_positions'] = red_positions
 
         else:
-            results = _run(rays_o, rays_d, latents, target_positions=target_positions, **kwargs)
+            results = _run(rays_o, rays_d, latents, target_positions=target_positions, color_t=color_t **kwargs)
             # print(results.keys())
 
         return results
