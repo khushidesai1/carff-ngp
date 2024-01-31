@@ -628,7 +628,7 @@ class NeRFRenderer(nn.Module):
             # results['red_positions'] = red_positions
 
         else:
-            results = _run(rays_o, rays_d, latents, target_positions=target_positions, color_t=color_t **kwargs)
+            results = _run(rays_o, rays_d, latents, target_positions=target_positions, color_t=color_t, **kwargs)
             # print(results.keys())
 
         return results
