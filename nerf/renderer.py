@@ -362,8 +362,8 @@ class NeRFRenderer(nn.Module):
                 target_locations[1] = torch.tensor([0.14606952, 0.03151616, -0.06544287]).to(xyzs.get_device())
                 car_locations[1] = torch.tensor([0.1389209, 0.02671495, 0.16611843]).to(xyzs.get_device()) 
                 # T2 truck location
-                # target_locations[2] = torch.tensor([0.14624707, 0.03038827, 0.17848531]).to(xyzs.get_device())
-                target_locations[2] = torch.tensor([[0.13935387, 0.00898723, 0.41571522]]).to(xyzs.get_device())
+                target_locations[2] = torch.tensor([0.14624707, 0.03038827, 0.17848531]).to(xyzs.get_device())
+                # target_locations[2] = torch.tensor([[0.13935387, 0.00898723, 0.41571522]]).to(xyzs.get_device())
                 car_locations[2] = torch.tensor([0.13999184, 0.01417865, 0.39448936]).to(xyzs.get_device()) 
                 # T3 truck location
                 target_locations[3] = torch.tensor([0.15180872, 0.03262607, -0.33373854]).to(xyzs.get_device())
@@ -378,13 +378,13 @@ class NeRFRenderer(nn.Module):
                 target_locations[5] = torch.tensor([0.14439805, 0.03065605, -0.21418989]).to(xyzs.get_device())
                 car_locations[5] =  torch.tensor([0.13999184, 0.01417865, 0.39448936]).to(xyzs.get_device())
 
-                target_location = target_locations[2]
+                target_location = target_locations[1]
                 distances = torch.norm(xyzs - target_location, dim=-1)
                 close_to_target = distances < tolerance
 
                 rgbs[close_to_target] = color1
 
-                target_location = car_locations[2]
+                target_location = car_locations[1]
                 distances = torch.norm(xyzs - target_location, dim=-1)
                 close_to_target = distances < tolerance
 
