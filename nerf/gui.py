@@ -163,7 +163,7 @@ class NeRFGUI:
                 self.render_buffer = (self.render_buffer * self.spp + outputs['image']) / (self.spp + 1)
                 self.spp += 1
 
-    def render_bev(self, dest_path='rendered.png'):
+    def render_bev(self, dest_path='rendered.png', color_t=0):
         '''
         for terminal viz, renders the bev image
         '''
@@ -181,7 +181,7 @@ class NeRFGUI:
         latents = self.test_latent.cuda().float()
         poses = self.train_loader._data.poses[rand_index].cpu().numpy() # [B, 4, 4]
         intrinsics = self.train_loader._data.intrinsics
-        outputs = self.trainer.test_gui(poses, intrinsics, W, H, latents, bg_color=None, spp=1, downscale=1)
+        outputs = self.trainer.test_gui(poses, intrinsics, W, H, latents, bg_color=None, spp=1, downscale=1, color_t=color_t)
         pred_img = torch.from_numpy(outputs['image']) #.reshape(-1, H, W, 3)
         save_image(pred_img.permute(2, 0, 1), dest_path)
         plt.imshow(pred_img)
