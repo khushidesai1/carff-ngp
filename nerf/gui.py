@@ -344,7 +344,7 @@ class NeRFGUI:
             predicted_latent = sampled_latent.squeeze(0)
             current_t, _ = self.probe_densities()
             predicted_t.append(current_t)
-            print(predicted_t)
+            # print(predicted_t)
         count = sum(1 for number in predicted_t if number == gt_scene)
         acc = count / len(predicted_t)
         return acc
@@ -354,8 +354,8 @@ class NeRFGUI:
         gt_scene = int(self.train_loader._data.scene_ids[gt_index]) + 1
         predicted_t = []
         for _ in range(num_experiments):
-            print("Predicted timestamps:", predicted_t)
-            print("Ground truth scene:", gt_scene)
+            # print("Predicted timestamps:", predicted_t)
+            # print("Ground truth scene:", gt_scene)
             self.update_latent_from_predicted(image_path)
             _, result_index = self.probe_densities()
             mus = self.train_loader._data.mus[result_index].cuda()

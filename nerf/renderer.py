@@ -351,7 +351,7 @@ class NeRFRenderer(nn.Module):
                 color1 = torch.tensor([0., 0., 1.], dtype=rgbs.dtype).to(rgbs.get_device())
                 color2 = torch.tensor([0., 1., 0.], dtype=rgbs.dtype).to(rgbs.get_device())
 
-                tolerance = 0.05
+                tolerance = 0.07
 
                 target_locations = {}
                 car_locations = {}
@@ -359,22 +359,21 @@ class NeRFRenderer(nn.Module):
                 target_locations[0] = torch.tensor([0.15180872, 0.03262607, -0.33373854]).to(xyzs.get_device())
                 car_locations[0] = torch.tensor([0.14536471, 0.01380782, -0.07035845]).to(xyzs.get_device()) 
                 # T1 truck location
-                target_locations[1] = torch.tensor([0.14606952, 0.03151616, -0.06544287]).to(xyzs.get_device())
+                target_locations[1] = torch.tensor([0.14806952, 0.03101616, -0.06544287]).to(xyzs.get_device())
                 car_locations[1] = torch.tensor([0.1389209, 0.02671495, 0.16611843]).to(xyzs.get_device()) 
                 # T2 truck location
-                target_locations[2] = torch.tensor([0.14624707, 0.03038827, 0.17848531]).to(xyzs.get_device())
+                target_locations[2] = torch.tensor([0.14524707, 0.03038827, 0.18448531]).to(xyzs.get_device())
                 car_locations[2] = torch.tensor([0.13999184, 0.01417865, 0.39448936]).to(xyzs.get_device()) 
                 # T3 truck location
                 target_locations[3] = torch.tensor([0.15180872, 0.03262607, -0.33373854]).to(xyzs.get_device())
                 car_locations[3] = torch.tensor([0.14536471, 0.01380782, -0.07035845]).to(xyzs.get_device()) 
                 # T4 truck location
-                # target_locations[4] = torch.tensor([0.14755751, 0.0269241, -0.27873851]).to(xyzs.get_device())
-                target_locations[4] = torch.tensor([0.149683115, 0.029775085, -0.296238525]).to(xyzs.get_device())
+                target_locations[4] = torch.tensor([0.14755751, 0.0269241, -0.27873851]).to(xyzs.get_device())
+                # target_locations[4] = torch.tensor([0.147683115, 0.029775085, -0.278238525]).to(xyzs.get_device())
                 # target_locations[4] = torch.tensor([0.15249956, 0.031077, -0.27964719]).to(xyzs.get_device())
                 car_locations[4] = torch.tensor([0.1389209, 0.02671495, 0.16611843]).to(xyzs.get_device()) 
                 # T5 truck location
-                # target_locations[5] = torch.tensor([0.14755751, 0.0269241, -0.27873851]).to(xyzs.get_device())
-                target_locations[5] = torch.tensor([0.14439805, 0.03065605, -0.19418989]).to(xyzs.get_device())
+                target_locations[5] = torch.tensor([0.14439805, 0.03065605, -0.20418989]).to(xyzs.get_device())
                 car_locations[5] =  torch.tensor([0.13999184, 0.01417865, 0.39448936]).to(xyzs.get_device())
 
                 target_location = target_locations[color_t]
@@ -401,9 +400,9 @@ class NeRFRenderer(nn.Module):
                     selected_densities = sigmas[close_to_target]
                     selected_car_densities = sigmas[close_to_car]
                     if len(selected_densities) > 0:
-                        mean_densities.append(torch.sum(selected_densities).item())
+                        mean_densities.append(torch.mean(selected_densities).item())
                     if len(selected_car_densities) > 0:
-                        mean_densities.append(torch.sum(selected_car_densities).item())
+                        mean_densities.append(torch.mean(selected_car_densities).item())
 
                 raymarching.composite_rays(n_alive, n_step, rays_alive[i % 2], rays_t[i % 2], sigmas.float(), rgbs.float(), deltas, weights_sum, depth, image)
 
@@ -415,7 +414,7 @@ class NeRFRenderer(nn.Module):
             image = image.view(*prefix, 3)
             depth = depth.view(*prefix)
         
-        mean_density = np.mean(mean_densities) if len(mean_densities) > 0 else 0.0
+        mean_density = np.sum(mean_densities) if len(mean_densities) > 0 else 0.0
         # print("not training branch")
         return {
             'depth': depth,
