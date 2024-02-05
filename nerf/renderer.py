@@ -359,22 +359,23 @@ class NeRFRenderer(nn.Module):
                 target_locations[0] = torch.tensor([0.15180872, 0.03262607, -0.33373854]).to(xyzs.get_device())
                 car_locations[0] = torch.tensor([0.14536471, 0.01380782, -0.07035845]).to(xyzs.get_device()) 
                 # T1 truck location
-                target_locations[1] = torch.tensor([0.14806952, 0.03101616, -0.06544287]).to(xyzs.get_device())
+                target_locations[1] = torch.tensor([0.14806952, 0.03101616, -0.08544287]).to(xyzs.get_device())
                 car_locations[1] = torch.tensor([0.1389209, 0.02671495, 0.16611843]).to(xyzs.get_device()) 
                 # T2 truck location
-                target_locations[2] = torch.tensor([0.14524707, 0.03038827, 0.18448531]).to(xyzs.get_device())
+                target_locations[2] = torch.tensor([0.14524707, 0.03038827, 0.16848531]).to(xyzs.get_device())
                 car_locations[2] = torch.tensor([0.13999184, 0.01417865, 0.39448936]).to(xyzs.get_device()) 
                 # T3 truck location
                 target_locations[3] = torch.tensor([0.15180872, 0.03262607, -0.33373854]).to(xyzs.get_device())
                 car_locations[3] = torch.tensor([0.14536471, 0.01380782, -0.07035845]).to(xyzs.get_device()) 
                 # T4 truck location
-                target_locations[4] = torch.tensor([0.14755751, 0.0269241, -0.27873851]).to(xyzs.get_device())
-                # target_locations[4] = torch.tensor([0.147683115, 0.029775085, -0.278238525]).to(xyzs.get_device())
-                # target_locations[4] = torch.tensor([0.15249956, 0.031077, -0.27964719]).to(xyzs.get_device())
+                target_locations[4] = torch.tensor([0.14655751, 0.0297241, -0.25873851]).to(xyzs.get_device())
                 car_locations[4] = torch.tensor([0.1389209, 0.02671495, 0.16611843]).to(xyzs.get_device()) 
                 # T5 truck location
-                target_locations[5] = torch.tensor([0.14439805, 0.03065605, -0.20418989]).to(xyzs.get_device())
+                target_locations[5] = torch.tensor([0.14339805, 0.03065605, -0.19418989]).to(xyzs.get_device())
                 car_locations[5] =  torch.tensor([0.13999184, 0.01417865, 0.39448936]).to(xyzs.get_device())
+
+                """
+                Code to check coloring for the timestamps
 
                 target_location = target_locations[color_t]
                 distances = torch.norm(xyzs - target_location, dim=-1)
@@ -387,6 +388,7 @@ class NeRFRenderer(nn.Module):
                 close_to_target = distances < tolerance
 
                 rgbs[close_to_target] = color2
+                """
 
                 if target_positions is not None:
                     target_location = target_locations[target_positions]

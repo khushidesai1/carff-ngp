@@ -103,8 +103,8 @@ class TensorDataset(Dataset):
         end_var = self.all_vars[end_scene][idx] # TODO one hot encode scene id to condition MLP
         end_latents = self.all_latents[end_scene][idx] # TODO one hot encode scene id to condition MLP
 
-        gaussian_noise1 = torch.randn(start_mu.shape).cuda() * 0.005
-        gaussian_noise2 = torch.randn(start_var.shape).cuda() * 0.005
+        gaussian_noise1 = torch.randn(start_mu.shape).cuda() * 0.004
+        gaussian_noise2 = torch.randn(start_var.shape).cuda() * 0.004
 
         return torch.cat([start_mu + gaussian_noise1, start_var + gaussian_noise2]), torch.cat([end_mu, end_var])
 

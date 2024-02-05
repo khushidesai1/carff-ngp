@@ -169,7 +169,7 @@ class NeRFGUI:
         '''
         indices = {}
         for i, item in enumerate(self.train_loader._data.paths):
-            if item.startswith("train/cam-v2-") or item.startswith("train_ego_actor/cam-v2-"):
+            if item.startswith("train/cam-v12-") or item.startswith("train_ego_actor/cam-v12-"):
                 indices[item] = i
         # print(indices)
         if len(indices) == 0:
@@ -333,6 +333,7 @@ class NeRFGUI:
         
         predicted_t = []
         for _ in range(num_experiments):
+            print("Ground truth:", gt_scene)
             self.update_latent_from_image(image_path)
             _, result_index = self.probe_densities()
             mus = self.train_loader._data.mus[result_index].cuda()
@@ -343,8 +344,8 @@ class NeRFGUI:
             sampled_latent, weight, mu, sigma = self.MDN.sample(input_data)
             predicted_latent = sampled_latent.squeeze(0)
             current_t, _ = self.probe_densities()
+            print("Predicted:", current_t)
             predicted_t.append(current_t)
-            # print(predicted_t)
         count = sum(1 for number in predicted_t if number == gt_scene)
         acc = count / len(predicted_t)
         return acc
@@ -355,7 +356,7 @@ class NeRFGUI:
         predicted_t = []
         for _ in range(num_experiments):
             # print("Predicted timestamps:", predicted_t)
-            # print("Ground truth scene:", gt_scene)
+            print("Ground truth:", gt_scene)
             self.update_latent_from_predicted(image_path)
             _, result_index = self.probe_densities()
             mus = self.train_loader._data.mus[result_index].cuda()
@@ -366,6 +367,7 @@ class NeRFGUI:
             sampled_latent, weight, mu, sigma = self.MDN.sample(input_data)
             predicted_latent = sampled_latent.squeeze(0)
             current_t, _ = self.probe_densities()
+            print("Predicted:", current_t)
             predicted_t.append(current_t)
 
         count = sum(1 for number in predicted_t if number == gt_scene)
