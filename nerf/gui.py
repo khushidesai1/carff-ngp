@@ -373,3 +373,19 @@ class NeRFGUI:
         count = sum(1 for number in predicted_t if number == gt_scene)
         acc = count / len(predicted_t)
         return acc
+
+    def probe_og(self):
+        result_index = self.probe()
+        mus = self.train_loader._data.mus[result_index].cuda()
+        vars = self.train_loader._data.vars[result_index].cuda()
+        # one hot encode
+        one_hot_encode = F.one_hot(torch.tensor([self.current_t]), self.train_loader._data.num_scenes).cuda()
+        input_data = torch.cat([mus, vars]).unsqueeze(0).cuda()
+        sampled_latent, weight, mu, sigma = self.MDN.sample(input_data)
+        predicted_latent = sampled_latent.squeeze(0)
+        result_index = self.probe()
+        # self.current_t = int(self.train_loader._data.scene_ids[result_index])
+        # print("yyy", int(self.train_loader._data.scene_ids[result_index]))
+        self.test_latent = predicted_latent
+        self.need_update = True
+        print("Successfully transferred to the next stage based on probed result.")
